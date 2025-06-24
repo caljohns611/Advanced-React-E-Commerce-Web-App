@@ -1,21 +1,57 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import Home from './components/Home';
-import ShoppingCart from './components/ShoppingCart';
+import type { JSX } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider } from "react-redux";
+import store from "./components/store";
 
-const App = () => {
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./user_components/Login";
+import Logout from "./user_components/Logout";
+
+import Home from "./components/Home";
+import Cart from "./components/Cart";
+import SignUp from "./user_components/SignUp";
+
+const queryClient = new QueryClient();
+
+function AppContent(): JSX.Element {
+  const { currentUser } = useAuth();
+
   return (
-    <Router>
-      <nav>
-        <Link to='/'>Home</Link>
-        <Link to='/cart'>Cart</Link>
-      </nav>
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/cart' element={<ShoppingCart />} />
-      </Routes>
-    </Router>
-  );
-};
+    <div style={{ padding: "16px" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>
+        Advanced React E-Commerce Web App
+      </h1>
 
-export default App;
+      {currentUser ? (
+        <>
+          <div style={{ marginBottom: "8px" }}>
+            Welcome, {currentUser.email}
+            <span style={{ marginLeft: "12px" }}>
+              <Logout />
+            </span>
+          </div>
+          <Home />
+          <Cart />
+        </>
+      ) : (
+        <>
+          <Login />
+          <SignUp />
+          <p>Please log in to use the store or sign up.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function App(): JSX.Element {
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </QueryClientProvider>
+    </Provider>
+  );
+}
